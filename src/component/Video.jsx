@@ -16,6 +16,7 @@ const Video = () => {
   const [comment, setComment] = useState("")
   const [commentList, setCommentList] = useState([])
   const [isSubscribe, setSubscribe] = useState(false)
+  const[isLike,setLike]=useState(false)
 
   const videoId = useParams()
   const [video, setVideo] = useState({})
@@ -29,13 +30,16 @@ const Video = () => {
       console.log(videoId.id);
 
       const d = await axios.get(`${api_base_url}/video/videoById/${videoId.id}`)
+      
+      console.log(d);
 
-      console.log('video', d.data.video)
-      setVideo(d.data.video)
-      setSubscribe(d.data.video.uploadedBy.subscriber.includes(localStorage.getItem('userId')))
+
+      console.log('video', d.data)
+      setVideo(d.data.data)
+      setSubscribe(d.data.data.video.subscribeStatus)
       setLoading(false)
     }
-    catch {
+    catch(err){
       setLoading(false)
       console.log(err);
     }
@@ -107,13 +111,12 @@ const Video = () => {
           :
           <div className='video-left'>  <video src={video.videoUrl} controls className='video-player'></video>
             <h1 className='video-title'>{video.title}</h1>
-            <p>{video.views} views, {video.likeUser.length} likes</p>
+            <p>{video.views} views, {video.likeCount} likes</p>
             <div className='video-user-wrapper'>
               <div className='channel-info'>
                 <img className="user-profile" src={video.uploadedBy.profileImageUrl ? video.uploadedBy.profileImageUrl : profile} />
                 <div>
                   <p className='channelName'>{video.uploadedBy.channelName}</p>
-                  <p>{video.uploadedBy.subscriber.length} Subscribers</p>
                 </div>
               </div>
               {video.uploadedBy._id != localStorage.getItem('userId') && <div className='like-dislike-subscrib-wrapper'>
@@ -122,8 +125,7 @@ const Video = () => {
                 <span className='like-dislike'><i className="fa-regular fa-thumbs-down"></i></span>
                 <span className='like-dislike'><i className="fa-solid fa-thumbs-down"></i></span>
                 <button className='subscribe-btn' type='button' onClick={() => {
-                  subscribe(video.uploadedBy
-                    ._id)
+                  subscribe(video.uploadedBy._id)
                 }}>{!isSubscribe && <span><i className="fa-regular fa-bell"></i></span>}{!isSubscribe ? 'Subscribe' : 'Unsubscribe'}</button>
               </div>
 
@@ -164,5 +166,6 @@ const Video = () => {
 
 
   )
+  
 }
 export default Video
