@@ -16,8 +16,8 @@ const Video = () => {
   const [comment, setComment] = useState("")
   const [commentList, setCommentList] = useState([])
   const [isSubscribe, setSubscribe] = useState(false)
-  const[isLike,setLike]=useState(false)
-
+ const [likeStatus,setLikestatus]=useState(false)
+ const [dislikeStatus,setDislikeStatus]=useState(false)
   const videoId = useParams()
   const [video, setVideo] = useState({})
   const api_base_url = import.meta.env.VITE_API_URL
@@ -36,7 +36,9 @@ const Video = () => {
 
       console.log('video', d.data)
       setVideo(d.data.data)
-      setSubscribe(d.data.data.video.subscribeStatus)
+      setSubscribe(d.data.subscribeStatus)
+      setLikestatus(d.data.likeStatus)
+      setDislikeStatus(d.data.setDislikeStatus)
       setLoading(false)
     }
     catch(err){
@@ -104,6 +106,31 @@ const Video = () => {
       });
     }
   }
+
+ const likeHandler=async()=>{
+  try{
+  setLikestatus(!likeStatus)
+  const likeRes=await axios.put(`${api_base_url}/video/like/${videoId.id}`,{},{
+    headers:{
+      Authorization:`Bearer ${localStorage.getItem('token')}`
+    }
+  })
+  console.log(likeRes);
+  const res=await axios.get(`${api_base_url}/video/videoById/${videoId.id}`)
+  console.log(res);
+  
+  
+
+  }
+  catch(err){
+    swal({
+        text: "Something is wrong!",
+        icon: "error",
+        button: "Ok",
+      });
+  }
+ }
+
   return (
     <div className="video">
       {
@@ -120,10 +147,10 @@ const Video = () => {
                 </div>
               </div>
               {video.uploadedBy._id != localStorage.getItem('userId') && <div className='like-dislike-subscrib-wrapper'>
-                <span className='like-dislike'><i className="fa-regular fa-thumbs-up"></i></span>
-                <span className='like-dislike'><i className="fa-solid fa-thumbs-up"></i></span>
-                <span className='like-dislike'><i className="fa-regular fa-thumbs-down"></i></span>
-                <span className='like-dislike'><i className="fa-solid fa-thumbs-down"></i></span>
+                {likeStatus && <span className='like-dislike' onClick={likeHandler}><i className="fa-regular fa-thumbs-up"></i></span>}
+                {!likeStatus && <span className='like-dislike'  onClick={likeHandler}><i className="fa-solid fa-thumbs-up"></i></span>}
+               { !dislikeStatus && <span className='like-dislike' ><i className="fa-regular fa-thumbs-down"></i></span>}
+                {dislikeStatus && <span className='like-dislike'><i className="fa-solid fa-thumbs-down"></i></span>}
                 <button className='subscribe-btn' type='button' onClick={() => {
                   subscribe(video.uploadedBy._id)
                 }}>{!isSubscribe && <span><i className="fa-regular fa-bell"></i></span>}{!isSubscribe ? 'Subscribe' : 'Unsubscribe'}</button>
