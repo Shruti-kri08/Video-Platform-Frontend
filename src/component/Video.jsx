@@ -16,8 +16,8 @@ const Video = () => {
   const [comment, setComment] = useState("")
   const [commentList, setCommentList] = useState([])
   const [isSubscribe, setSubscribe] = useState(false)
- const [likeStatus,setLikestatus]=useState(false)
- const [dislikeStatus,setDislikeStatus]=useState(false)
+ const [isLike,setLike]=useState(false)
+ const [isDislike,setDislike]=useState(false)
   const videoId = useParams()
   const [video, setVideo] = useState({})
   const api_base_url = import.meta.env.VITE_API_URL
@@ -29,16 +29,18 @@ const Video = () => {
       setLoading(true)
       console.log(videoId.id);
 
-      const d = await axios.get(`${api_base_url}/video/videoById/${videoId.id}`)
+      const d = await axios.get(`${api_base_url}/video/videoById/${videoId.id}`,{
+        headers:{
+          Authorization:`Bearer ${localStorage.getItem('token')}`
+        }
+      })
       
       console.log(d);
-
-
-      console.log('video', d.data)
+      console.log('video', d.data.data)
       setVideo(d.data.data)
-      setSubscribe(d.data.subscribeStatus)
-      setLikestatus(d.data.likeStatus)
-      setDislikeStatus(d.data.setDislikeStatus)
+      setSubscribe(d.data.data.subscribeStatus)
+      setLike(d.data.data.likeStatus)
+      setDislike(d.data.data.dislikeStatus)
       setLoading(false)
     }
     catch(err){
@@ -50,14 +52,19 @@ const Video = () => {
 
   const subscribe = async (channeId) => {
     try {
+     
+
+      console.log(isSubscribe)
       setSubscribe(!isSubscribe)
-      const susbcribeRes = await axios.put(`${api_base_url}/user/${isSubscribe ? 'unsubscribe' : 'subscribe'}/${channeId}`, {}, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+      const subscribeRes=await axios.put(`${api_base_url}/user/${isSubscribe ? 'unsubscribe' : 'subscribe'}/${channeId}`,{},{
+        headers:{
+          Authorization:`Bearer ${localStorage.getItem('token')}`
         }
       })
-      console.log((susbcribeRes));
+      console.log(subscribeRes);
+      
     }
+    
     catch (err) {
       setSubscribe(!isSubscribe)
       swal({
@@ -68,6 +75,53 @@ const Video = () => {
     }
   }
 
+const likeHandler=async()=>{
+  try{
+    setLike(!isLike)
+    setDislike(false)
+    const likeRes=await axios.put(`${api_base_url}/video/like/${videoId.id}` ,{},
+      {
+        headers:{
+          Authorization:`Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    )
+    console.log(likeRes)
+
+  }
+  catch(err){
+     setLike(!isLike)
+    swal({
+        text: "Something is wrong!",
+        icon: "error",
+        button: "Ok",
+      });
+  }
+}
+
+const dislikeHandler=async()=>{
+   try{
+    setLike(false)
+    setDislike(!isDislike)
+    const dislikeRes=await axios.put(`${api_base_url}/video/dislike/${videoId.id}` ,{},
+      {
+        headers:{
+          Authorization:`Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    )
+    console.log(dislikeRes)
+
+  }
+  catch(err){
+     setLike(!isDislike)
+    swal({
+        text: "Something is wrong!",
+        icon: "error",
+        button: "Ok",
+      });
+  }
+}
 
   const addComment = async () => {
     try {
@@ -107,30 +161,6 @@ const Video = () => {
     }
   }
 
- const likeHandler=async()=>{
-  try{
-  setLikestatus(!likeStatus)
-  const likeRes=await axios.put(`${api_base_url}/video/like/${videoId.id}`,{},{
-    headers:{
-      Authorization:`Bearer ${localStorage.getItem('token')}`
-    }
-  })
-  console.log(likeRes);
-  const res=await axios.get(`${api_base_url}/video/videoById/${videoId.id}`)
-  console.log(res);
-  
-  
-
-  }
-  catch(err){
-    swal({
-        text: "Something is wrong!",
-        icon: "error",
-        button: "Ok",
-      });
-  }
- }
-
   return (
     <div className="video">
       {
@@ -147,10 +177,10 @@ const Video = () => {
                 </div>
               </div>
               {video.uploadedBy._id != localStorage.getItem('userId') && <div className='like-dislike-subscrib-wrapper'>
-                {likeStatus && <span className='like-dislike' onClick={likeHandler}><i className="fa-regular fa-thumbs-up"></i></span>}
-                {!likeStatus && <span className='like-dislike'  onClick={likeHandler}><i className="fa-solid fa-thumbs-up"></i></span>}
-               { !dislikeStatus && <span className='like-dislike' ><i className="fa-regular fa-thumbs-down"></i></span>}
-                {dislikeStatus && <span className='like-dislike'><i className="fa-solid fa-thumbs-down"></i></span>}
+               {!isLike && <span className='like-dislike' onClick={likeHandler}><i className="fa-regular fa-thumbs-up"></i></span>}
+               {isLike && <span className='like-dislike' onClick={likeHandler} ><i className="fa-solid fa-thumbs-up"></i></span>}
+              {!isDislike && <span className='like-dislike' onClick={dislikeHandler} ><i className="fa-regular fa-thumbs-down"></i></span>}
+                {isDislike && <span className='like-dislike' onClick={dislikeHandler}><i className="fa-solid fa-thumbs-down"></i></span>}
                 <button className='subscribe-btn' type='button' onClick={() => {
                   subscribe(video.uploadedBy._id)
                 }}>{!isSubscribe && <span><i className="fa-regular fa-bell"></i></span>}{!isSubscribe ? 'Subscribe' : 'Unsubscribe'}</button>
