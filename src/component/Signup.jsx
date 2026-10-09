@@ -14,14 +14,9 @@ const Signup = () => {
 
     const { setLoginState } = useOutletContext();
 
-    const api_base_url = import.meta.env.VITE_API_URL
+    const api_base_url =  import.meta.env.VITE_API_URL
 
-    const resetFrom = () => {
-        setEmail("")
-        setChannelName("")
-        setDescription("")
-        setPassword("")
-    }
+    
     const submitHandler = async (e) => {
         try {
             e.preventDefault()
@@ -34,14 +29,16 @@ const Signup = () => {
                 description
             }
 
-            await axios.post(`${api_base_url}/user/signup`, data)
+           const signupRes= await axios.post(`${api_base_url}/user/signup`, data)
             console.log("signup done");
+            console.log(signupRes);
+            
 
             const res = await axios.post(`${api_base_url}/user/login`, data)
             console.log(res)
 
             localStorage.setItem('token', res.data.token)
-            log
+        
             localStorage.setItem('channelName', res.data.data.channelName)
             localStorage.setItem('userId', res.data.data._id)
 
