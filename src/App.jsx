@@ -5,6 +5,7 @@ import Login from "./component/Login"
 import Signup from "./component/Signup"
 import AddVideo from "./component/AddVideo"
 import Video from "./component/Video"
+import ChannelProfile from "./component/ChannelProfile"
 
 const App=()=>{
 
@@ -17,6 +18,7 @@ const App=()=>{
         <Route path="login" element={<Login/>}/>
        <Route path="video/:id" element={<Video/>}/>
         <Route path="signup" element={<Signup/>}/>
+        <Route path='profile/:channelId' element={<ChannelProfile/>}/>
       </Route>
     </Routes>
   )

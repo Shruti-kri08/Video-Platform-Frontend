@@ -57,8 +57,8 @@ const Home = () => {
                                             <img
                                                 className='user-profile'
                                                 src={
-                                                    video.uploadedBy.profilePicUrl
-                                                        ? video.uploadedBy.profilePicUrl
+                                                    video.uploadedBy.profileImageUrl
+                                                        ? video.uploadedBy.profileImageUrl
                                                         : profile
                                                 }
                                                 alt="profile"

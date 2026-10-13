@@ -7,7 +7,7 @@ const AddVideo = () => {
     const [title, setTitle] = useState("")
     const [tags, setTags] = useState("")
     const [description, setDescription] = useState("")
-    const [category, setCategory] = useState("education")
+    const [category, setCategory] = useState("Education")
     const [video, setVideo] = useState(null)
     const [videoName, setVideoName] = useState(null)
     const [isLoading, setLoading] = useState(false)
@@ -49,13 +49,14 @@ const AddVideo = () => {
             formData.append("video", video)
             formData.append("thumbnail", thumbnail)
             console.log("TOKEN:", token);
+            console.log(formData);
+            
 
             await axios.post(`${api_base_url}/video/upload`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             })
-            navigate('/home')
             setLoading(false)
 
             swal({

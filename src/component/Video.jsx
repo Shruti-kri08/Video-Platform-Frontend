@@ -19,9 +19,14 @@ const Video = () => {
   const [isLike, setLike] = useState(false)
   const [isDislike, setDislike] = useState(false)
 
+  const [editConfig, setEditConfig] = useState(null)
+  const [editCommentText, setEditCommentText] = useState('')
+  const [editCommentLoader,setEditCommentLoader]=useState(false)
+
   const videoId = useParams()
   const [video, setVideo] = useState({})
   const api_base_url = import.meta.env.VITE_API_URL
+  const navigate=useNavigate()
   // const navigate=useNavigate()
 
   // const navigateToLogin=()=>{
@@ -254,12 +259,12 @@ const Video = () => {
     }
   }
 
-  const deleteComment =async (commentId) => {
+  const deleteComment = async (commentId) => {
     try {
-      const token=localStorage.getItem('token')
+      const token = localStorage.getItem('token')
       console.log(commentId);
-      
-     const deleteConfirmation = await Swal.fire({
+
+      const deleteConfirmation = await Swal.fire({
         title: "Are you sure?",
         text: "You won't be able to revert this!",
         icon: "warning",
@@ -269,17 +274,17 @@ const Video = () => {
         confirmButtonText: "Yes, delete it!"
       })
       console.log(deleteConfirmation.isConfirmed);
-      
-      if(deleteConfirmation.isConfirmed){
-         await axios.delete(`${api_base_url}/comment/delete/${commentId}`,{
-           headers: {
-          Authorization: `Bearer ${token}`
-        }
-         })
-           swal("comment deleted", "Comment deleted", "success");
-            getComment()
+
+      if (deleteConfirmation.isConfirmed) {
+        await axios.delete(`${api_base_url}/comment/delete/${commentId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        swal("comment deleted", "Comment deleted", "success");
+        getComment()
       }
-     
+
 
 
     }
@@ -293,6 +298,56 @@ const Video = () => {
     }
   }
 
+  const setEditComment = async (commentId, commentText) => {
+    try {
+      setEditConfig(commentId)
+      setEditCommentText(commentText)
+    }
+    catch (err) {
+      console.log(err);
+      
+      swal({
+        text: "Something is wrong!",
+        icon: "error",
+        button: "Ok",
+      });
+    }
+  }
+
+  const editCommentHandler=async()=>{
+    try{
+      setEditCommentLoader(true)
+      console.log(editConfig);
+      
+ const token = localStorage.getItem('token')
+
+       await axios.put(`${api_base_url}/comment/update/${editConfig}`,{ commentText: editCommentText }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+            setEditCommentLoader(false)
+
+        swal("comment deleted", "Comment deleted", "success");
+
+       setEditConfig(null);
+      setEditCommentText('')
+      getComment()
+     
+      
+      
+    }
+    catch(err){
+setEditCommentLoader(false)
+      console.log(err);
+      
+      swal({
+        text: "Something is wrong!",
+        icon: "error",
+        button: "Ok",
+      });
+    }
+  }
   return (
     <div className="video">
       {
@@ -305,7 +360,7 @@ const Video = () => {
               <div className='channel-info'>
                 <img className="user-profile" src={video.uploadedBy.profileImageUrl ? video.uploadedBy.profileImageUrl : profile} />
                 <div>
-                  <p className='channelName'>{video.uploadedBy.channelName}</p>
+                  <p className='channelName' onClick={()=>{navigate(`/profile/${video.uploadedBy._id}`)}}>{video.uploadedBy.channelName}</p>
                 </div>
               </div>
               {video.uploadedBy._id != localStorage.getItem('userId') && localStorage.getItem('token') && <div className='like-dislike-subscribe-wrapper'>
@@ -336,26 +391,36 @@ const Video = () => {
               {
                 commentList.map((c) => {
                   return <div className='comment-card' key={c._id}>
-                    {console.log(c)}
-                    {/* {console.log('uploaded by', video.uploadedBy)}
-                    {console.log('commenBY : ' ,c.commentBy)} */}
-                    
+                    {/* {console.log(c)} */}
+
+
                     <div className='comment-user-info'>
                       <img className='user-profile' src={c.commentBy.profileImageUrl ? c.commentBy.profileImageUrl : profile} />
                       <p>{c.commentBy
                         .channelName}</p>
                     </div>
 
-                    <p className='commentText'>{c.commentText}</p>
+                    {!(editConfig == c._id) &&<p className='commentText'>{c.commentText}</p>}
+                    
+                    {editConfig == c._id && <div>
+                      
+                      <div className="editComment-btn-container">
+                        <input value={editCommentText} onChange={(e) => { setEditCommentText(e.target.value) }} className='comment-box' type="text" placeholder='write comment' />
+                      <button  className='comment-btn' type='button' onClick={editCommentHandler}>{editCommentLoader && <span><i className="fa-solid fa-spinner fa-spin-pulse"></i></span>}Edit Comment</button>
 
+                      <button  className='comment-btn' type='button' onClick={()=>{setEditConfig(null)}}>Cancel</button>
+                      </div>
 
+                    </div>}
                     <div className='like-dislike-subscribe-wrapper'>
+
+
                       {!c.isLike && <span className='like-dislike' onClick={() => { likeCommentHandler(c._id) }}><i className="fa-regular fa-thumbs-up"></i></span>}
                       {c.isLike && <span className='like-dislike' onClick={() => { likeCommentHandler(c._id) }}><i className="fa-solid fa-thumbs-up"></i></span>}
                       {!c.isDislike && <span className='like-dislike' onClick={() => { dislikeCommentHandler(c._id) }}><i className="fa-regular fa-thumbs-down"></i></span>}
                       {c.isDislike && <span className='like-dislike' onClick={() => { dislikeCommentHandler(c._id) }}><i className="fa-solid fa-thumbs-down"></i></span>}
-                      {c.commentBy._id == localStorage.getItem('userId') && <span><i className="fa-solid fa-pen"></i></span>}
-                      {(c.commentBy._id == localStorage.getItem('userId') || video.uploadedBy._id == localStorage.getItem('userId')) && <span  onClick={() => { deleteComment(c._id) }}><i className="fa-regular fa-trash-can"></i></span>}
+                      {c.commentBy._id == localStorage.getItem('userId') && <span onClick={() => { setEditComment(c._id, c.commentText) }} ><i className="fa-solid fa-pen"></i></span>}
+                      {(c.commentBy._id == localStorage.getItem('userId') || video.uploadedBy._id == localStorage.getItem('userId')) && <span onClick={() => { deleteComment(c._id) }}><i className="fa-regular fa-trash-can"></i></span>}
                     </div>
 
                   </div>
